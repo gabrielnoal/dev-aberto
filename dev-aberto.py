@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
 import jinja2 as j2
 import markdown
 import os
@@ -56,15 +57,45 @@ def edit_achievements(student_login):
     with open(f'students/{student_login}.temp', 'w') as f:
         f.write(json_achievements)
     
-    if 'win32' in sys.platform:
-        editor = os.getenv('EDITOR', default='notepad.exe')
+    # if 'win32' in sys.platform:
+    #     editor = os.getenv('EDITOR', default='notepad.exe')
+    # else:
+    #     editor = os.getenv('EDITOR', default='nano')
+
+    # while True:
+    skill_id = input('Digite o ID do skill a ser adicionado: ')
+      date = datetime().now().format('yyyy-mm-dd')
+
+    metadata = {
+      "date": date
+    }
+    if not skill_id in all_skills.keys():
+      print(f'"{skill_id}" não é um ID valido')
     else:
-        editor = os.getenv('EDITOR', default='vi')
+      selected_skill = all_skills[skill_id]
+      metadata_requirements = selected_skill.get('metadata_requirements', [])
+      if metadata_requirements and len(metadata_requirements):
+        
+        for mt in metadata_requirements:
+          field_name, field_type = mt.split('|')
+          if "List" in field_type:
+            mt_data = input(f"Digite os valores para a lista {field_name} (separado por espaço):")
+            mt_data = mt_data.split(' ')
+          else:
+            mt_data = input(f"Digite o campo {field_name}:")
+            
+          metadata[field_name] = mt_data
+
+
     
     while True:
-        os.system(f'{editor} students/{student_login}.temp')
-        with open(f'students/{student_login}.temp') as f:
-            json_achievements = f.read()
+        # os.system(f'{editor} students/{student_login}.temp')
+        # with open(f'students/{student_login}.temp') as f:
+        json_achievements = {
+          id: skill_id,
+          metadata: metadata
+        }
+        print(json_achievements)
         try:
             _ = json.loads(json_achievements)
         except json.JSONDecodeError:
